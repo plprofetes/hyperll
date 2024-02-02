@@ -67,5 +67,55 @@ module Hyperll
       hll.offer(3)
       expect(hll.cardinality).to eq(3)
     end
+
+    it 'supports Ractor' do
+      return unless defined?(Ractor)
+      shll = HyperLogLog.new(4)
+      shll.offer(1)
+      shll.offer(1)
+      shll.offer(2)
+      shll = HyperLogLog.unserialize(shll.serialize)
+      orig = shll.cardinality
+      expect(orig).to eq(2)
+
+      serialized = shll.serialize
+      1000.times do |n|
+        begin
+        a = {}
+        b = Array.new 1000
+        c = n
+        end
+      end
+
+      shll = HyperLogLog.unserialize(serialized)
+      expect(shll.cardinality).to eq(orig)
+      # puts "L#{serialized.length}, #{serialized.unpack("N*").join('.')}"
+
+
+      # via ractors:
+      ractor2 = Ractor.new do
+        hll_raw = Ractor.receive
+        # puts "r2: L#{hll_raw.length}, #{hll_raw.unpack("N*").join('.')}"
+        hll = HyperLogLog.unserialize(hll_raw)
+        # puts "r3: #{hll.serialize.unpack("N*").join('.')}"
+        Ractor.yield hll.cardinality
+      end
+
+      ractor = Ractor.new ractor2 do |ractor2|
+        hll = HyperLogLog.new(4)
+        hll.offer(1)
+        hll.offer(1)
+        hll.offer(2)
+        card = hll.cardinality
+        ser  = hll.serialize
+        # puts "r1: L#{ser.length}, #{hll.serialize.unpack("N*").join('.')}"
+        ractor2.send(hll.serialize.freeze, move: true) # move: true  => test fails. Ruby does not clean the memory? or HLL's bug of alignment/reading past pointer? #freeze solved the problem. Ractor bug probably in 3.3.0
+        Ractor.yield card
+      end
+
+      expect(ractor.take).to eq(orig)
+      expect(ractor2.take).to eq(orig)
+
+    end
   end
 end

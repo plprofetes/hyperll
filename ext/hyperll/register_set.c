@@ -181,7 +181,12 @@ static VALUE rb_register_set_size(VALUE self) {
 }
 
 void Init_hyperll_register_set(void) {
+  #if HAVE_RB_EXT_RACTOR_SAFE
+    rb_ext_ractor_safe(true);
+  #endif
+
   rb_cRegisterSet = rb_define_class_under(rb_mHyperll, "RegisterSet", rb_cObject);
+  rb_undef_alloc_func(rb_cRegisterSet);
   rb_include_module(rb_cRegisterSet, rb_mEnumerable);
 
   rb_define_singleton_method(rb_cRegisterSet, "new", rb_register_set_new, -1);

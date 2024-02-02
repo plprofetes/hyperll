@@ -36,9 +36,6 @@ int delta_bytes_uncompress(uint8_t compressed[], int len, uint32_t values[]) {
 }
 
 static VALUE rb_delta_bytes_compress(VALUE self, VALUE rvalues) {
-  #if HAVE_RB_EXT_RACTOR_SAFE
-      rb_ext_ractor_safe(true);
-  #endif
   int rlen = RARRAY_LEN(rvalues);
 
   int offset = 0;

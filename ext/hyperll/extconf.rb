@@ -9,4 +9,6 @@ if RbConfig::MAKEFILE_CONFIG['CC'] =~ /gcc|clang/
   $CFLAGS << " -Wall -std=c99"
 end
 
+have_func('rb_ext_ractor_safe', 'ruby.h')
+
 create_makefile('hyperll/hyperll')
